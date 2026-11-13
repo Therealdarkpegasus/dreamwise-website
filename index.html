@@ -92,9 +92,44 @@
     .result-status { color:#bda4ee; font-size:15px; margin:14px 0 0; }
     .result-status.error { color:#ffd0d0; font-size:16px; line-height:1.6; padding:18px 20px; border:1px solid #ff9a9a44; border-radius:16px; background:#2a1219; margin:0; }
     .price-card.featured { border-color:#e9c98b66; background:linear-gradient(145deg,#2a1f3d,#151122); }
-    .price-card .btn { display:block; text-align:center; margin-top:22px; }
-    .price-card .soon-pill { display:block; text-align:center; margin-top:22px; }
+    .price-card { display:flex; flex-direction:column; }
+    .price-card ul { flex:1; }
+    .price-card .btn { display:block; text-align:center; margin-top:22px; padding:14px 19px; font-size:15px; }
     .soon.live { color:#c3f2d6; border-color:#6fd39a66; background:#3fa86a18; }
+    body.reading-open { overflow:hidden; }
+    .reading-view { position:fixed; inset:0; z-index:20; overflow-y:auto; -webkit-overflow-scrolling:touch; background:radial-gradient(ellipse at 78% 0%,rgba(111,70,180,.22),transparent 40%),radial-gradient(ellipse at 10% 40%,rgba(74,55,130,.15),transparent 40%),var(--bg); }
+    .reading-view[hidden] { display:none; }
+    .reading-bar { position:sticky; top:0; z-index:2; background:#0b0914ee; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+    .reading-bar-inner { height:68px; display:flex; align-items:center; justify-content:space-between; }
+    .reading-body { width:min(860px,calc(100% - 32px)); margin:0 auto; padding:34px 0 70px; }
+    .reading-body .rs-head { padding:38px 34px; }
+    .reading-body .rs-kicker { font-size:14px; }
+    .reading-body h3.rs-title { font-size:clamp(32px,6vw,54px); line-height:1.1; }
+    .reading-body .rs-card { padding:28px 28px 26px; margin-top:18px; }
+    .reading-body h4.rs-label { font-size:14px; }
+    .reading-body .rs-text { font-size:19px; line-height:1.85; }
+    .reading-body .rs-quote { font-size:20px; }
+    .reading-body .item-grid { grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
+    .reading-body .item-name { font-size:19px; }
+    .reading-body .item-text { font-size:16.5px; }
+    .reading-body .q-list li { font-size:18px; padding:16px 18px; }
+    .reading-body .upsell-title { font-size:22px; }
+    .reading-body .rs-note { font-size:14px; }
+    .ready-bar { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; padding:16px 18px; border:1px solid #c8a9f044; border-radius:16px; background:#151026; }
+    .ready-bar span { font-size:15px; font-weight:700; color:#f1e8ff; }
+    @media (max-width:540px) {
+      .reading-body .rs-head { padding:24px 20px; }
+      .reading-body .rs-card { padding:20px 18px; }
+      .reading-body .rs-text { font-size:17px; }
+      .reading-body .rs-quote { font-size:18px; }
+    }
+    @media print {
+      body > *:not(#readingView) { display:none !important; }
+      body.reading-open { overflow:visible; }
+      .reading-view { position:static; overflow:visible; background:#fff !important; }
+      .reading-bar, .rs-actions, .upsell { display:none !important; }
+      #readingView, #readingView * { color:#111 !important; background:transparent !important; border-color:#bbb !important; box-shadow:none !important; animation:none !important; }
+    }
     @media (prefers-reduced-motion: reduce) { .orb, .result-panel.show { animation:none; } }
     .section { padding:75px 0; }
     .section-head { text-align:center; max-width:620px; margin:0 auto 38px; }
@@ -241,7 +276,7 @@
     <section class="section">
       <div class="wrap">
         <div class="quote">
-          <p>“A dream interpretation should open a door to reflection, not tell you what your future must be.”</p>
+          <p>Understand the story your mind tells while you sleep, and discover what your dreams may be trying to show you.</p>
           <small>The DreamWise approach</small>
         </div>
       </div>
@@ -256,19 +291,19 @@
         </div>
         <div class="pricing">
           <article class="price-card">
-            <h3>Free reading <span class="soon live">AVAILABLE NOW</span></h3><div class="price">$0 <span>/ to start</span></div><p>For exploring your dreams and getting started.</p>
+            <h3>Free reading</h3><div class="price">$0 <span>/ to start</span></div><p>For exploring your dreams and getting started.</p>
             <ul><li>A thoughtful basic interpretation</li><li>Symbols, emotions and reflection</li><li>No account needed</li></ul>
-            <a class="btn" href="#interpret">Try it free</a>
+            <a class="btn ghost" href="#interpret">Try it free</a>
           </article>
           <article class="price-card featured">
-            <h3>Deep Reading <span class="soon">LAUNCHING SOON</span></h3><div class="price">$2.99 <span>/ per reading</span></div><p>For the dream you can't stop thinking about.</p>
-            <ul><li>Longer, more detailed interpretation</li><li>Expanded symbol and emotion analysis</li><li>Personal journaling prompts</li><li>Downloadable report (coming later)</li></ul>
-            <span class="soon-pill">Launching soon</span>
+            <h3>Deep Reading <span class="soon">MOST DETAILED</span></h3><div class="price">$2.99 <span>/ per reading</span></div><p>For the dream you can't stop thinking about.</p>
+            <ul><li>Longer, more detailed interpretation</li><li>Expanded symbol and emotion analysis</li><li>Personal journaling prompts</li></ul>
+            <a class="btn" href="#plans" data-order="deep">Get a Deep Reading</a>
           </article>
           <article class="price-card">
-            <h3>DreamWise Plus <span class="soon">PLANNED</span></h3><div class="price">Coming soon</div><p>For people who want a deeper ongoing dream practice.</p>
-            <ul><li>More interpretation credits</li><li>Expanded dream history</li><li>Recurring-symbol insights</li></ul>
-            <span class="soon-pill">Planned</span>
+            <h3>DreamWise Plus <span class="soon">MONTHLY</span></h3><div class="price">$6.99 <span>/ per month</span></div><p>For people who want a deeper ongoing dream practice.</p>
+            <ul><li>More deep readings every month</li><li>Priority delivery</li><li>Dream history and recurring-symbol insights (rolling out)</li></ul>
+            <a class="btn ghost" href="#plans" data-order="plus">Get DreamWise Plus</a>
           </article>
         </div>
         <p class="disclaimer">Dream interpretations are for personal reflection and entertainment. They are not medical or psychological diagnoses, and they cannot predict future events.</p>
@@ -285,12 +320,30 @@
   </footer>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <div class="reading-view" id="readingView" role="dialog" aria-modal="true" aria-label="Your dream reading" hidden>
+    <div class="reading-bar">
+      <div class="wrap reading-bar-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19.5 15.5A8 8 0 0 1 8.5 4.5 8.5 8.5 0 1 0 19.5 15.5Z"/><path d="m16.5 3 .7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7.7-2.1Z"/></svg>
+          </span>
+          DreamWise <span style="color:#c3a4f4">AI</span>
+        </div>
+        <button class="btn ghost" id="readingBack" type="button">← Back</button>
+      </div>
+    </div>
+    <div class="result-panel show reading-body" id="readingBody"></div>
+  </div>
+
   <script>
     const dream = document.getElementById('dream');
     const count = document.getElementById('count');
     const toast = document.getElementById('toast');
     const interpretBtn = document.getElementById('interpretBtn');
     const resultPanel = document.getElementById('resultPanel');
+    const readingView = document.getElementById('readingView');
+    const readingBody = document.getElementById('readingBody');
+    const readingBack = document.getElementById('readingBack');
 
     dream.addEventListener('input', () => {
       count.textContent = `${dream.value.length.toLocaleString()} / 2,000`;
@@ -513,7 +566,28 @@
     }
     // DW-LOGIC-END
 
-    const DEEP_READING_URL = ''; // Paste your payment link here when the paid Deep Reading is ready.
+    // Paste your Selar product links between the quotes below.
+    const SELAR_DEEP_READING_URL = '';
+    const SELAR_PLUS_URL = '';
+
+    function wireOrderLink(link, kind) {
+      const url = kind === 'plus' ? SELAR_PLUS_URL : SELAR_DEEP_READING_URL;
+      if (url) {
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener';
+      } else {
+        link.href = '#plans';
+        link.onclick = (event) => {
+          if (event && event.preventDefault) event.preventDefault();
+          showToast('Ordering is not set up yet. Please check back shortly.');
+        };
+      }
+    }
+
+    function setupOrderLinks() {
+      document.querySelectorAll('[data-order]').forEach(link => wireOrderLink(link, link.getAttribute('data-order')));
+    }
 
     function showToast(message) {
       toast.textContent = message;
@@ -601,15 +675,9 @@
       copy.appendChild(make('div', 'upsell-title', 'Want to go deeper?'));
       copy.appendChild(make('p', '', 'A Deep Reading gives you a longer, more detailed interpretation with expanded symbol and emotion analysis and personal journaling prompts.'));
       box.appendChild(copy);
-      if (DEEP_READING_URL) {
-        const link = make('a', 'btn', 'Get a Deep Reading ✦');
-        link.href = DEEP_READING_URL;
-        link.target = '_blank';
-        link.rel = 'noopener';
-        box.appendChild(link);
-      } else {
-        box.appendChild(make('span', 'soon-pill', 'Launching soon'));
-      }
+      const link = make('a', 'btn', 'Get a Deep Reading ✦');
+      wireOrderLink(link, 'deep');
+      box.appendChild(link);
       panel.appendChild(box);
     }
 
@@ -625,15 +693,22 @@
           showToast('Copy is not available in this browser.');
         }
       };
+      const printBtn = make('button', 'btn ghost', 'Print or save as PDF');
+      printBtn.type = 'button';
+      printBtn.onclick = () => window.print();
       const againBtn = make('button', 'btn ghost', 'Explore another dream');
       againBtn.type = 'button';
       againBtn.onclick = () => {
+        closeReading();
         dream.value = '';
         count.textContent = '0 / 2,000';
+        resultPanel.className = 'result-panel';
+        resultPanel.replaceChildren();
         dream.scrollIntoView({ behavior: 'smooth', block: 'center' });
         dream.focus();
       };
       bar.appendChild(copyBtn);
+      bar.appendChild(printBtn);
       bar.appendChild(againBtn);
       panel.appendChild(bar);
     }
@@ -681,6 +756,39 @@
       resultPanel.className = 'result-panel show';
     }
 
+    function showReadingView() {
+      readingView.hidden = false;
+      document.body.classList.add('reading-open');
+      readingView.scrollTop = 0;
+      try { history.pushState({ dwReading: true }, '', '#reading'); } catch (e) {}
+      readingBack.focus();
+    }
+
+    function hideReading() {
+      readingView.hidden = true;
+      document.body.classList.remove('reading-open');
+    }
+
+    function closeReading() {
+      if (readingView.hidden) return;
+      hideReading();
+      if (history.state && history.state.dwReading) {
+        try { history.back(); } catch (e) {}
+      }
+    }
+
+    function showReadyBar() {
+      resultPanel.className = 'result-panel show';
+      resultPanel.replaceChildren();
+      const bar = make('div', 'ready-bar');
+      bar.appendChild(make('span', '', '✦ Your dream reading is ready'));
+      const openBtn = make('button', 'btn ghost', 'View my reading');
+      openBtn.type = 'button';
+      openBtn.onclick = showReadingView;
+      bar.appendChild(openBtn);
+      resultPanel.appendChild(bar);
+    }
+
     interpretBtn.addEventListener('click', async () => {
       const value = dream.value.trim();
       if (!value) {
@@ -725,12 +833,12 @@
           throw new Error('DreamWise received an unexpected response from the server. Please try again in a moment.');
         }
 
-        renderInterpretation(resultPanel, normalized);
-        if (!resultPanel.textContent.trim()) {
+        renderInterpretation(readingBody, normalized);
+        if (!readingBody.textContent.trim()) {
           throw new Error('DreamWise received an unexpected response from the server. Please try again in a moment.');
         }
-        resultPanel.className = 'result-panel show';
-        resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        showReadyBar();
+        showReadingView();
       } catch (error) {
         let message = error && error.message ? error.message : '';
         if (error && error.name === 'AbortError') {
@@ -745,6 +853,14 @@
         interpretBtn.innerHTML = 'Explore my dream <span aria-hidden="true">✦</span>';
       }
     });
+
+    readingBack.addEventListener('click', closeReading);
+    window.addEventListener('popstate', () => { if (!readingView.hidden) hideReading(); });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeReading(); });
+    if (location.hash === '#reading') {
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+    }
+    setupOrderLinks();
 
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
