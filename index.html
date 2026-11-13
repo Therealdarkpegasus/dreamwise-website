@@ -54,12 +54,14 @@
     .input-foot { display:flex; justify-content:space-between; color:#777087; font-size:10px; margin:8px 2px 18px; }
     .btn.full { width:100%; padding:14px; font-size:13px; }
     .demo-note { color:#827b91; text-align:center; font-size:10px; margin:12px 0 0; }
-    .result-panel { display:none; margin-top:22px; padding:20px; border:1px solid #b99ce94a; border-radius:18px; background:#0d0b17; position:relative; }
+    .result-panel { display:none; margin-top:22px; padding:20px; border:1px solid #b99ce94a; border-radius:18px; background:#0d0b17; position:relative; overflow-wrap:anywhere; }
     .result-panel.show { display:block; }
     .result-panel h3 { color:#e8d9ff; margin:0 0 10px; font-size:18px; }
     .result-panel h4 { color:#cbb2f5; margin:18px 0 6px; font-size:12px; }
     .result-panel p,.result-panel li { color:#c9c1d8; font-size:12px; line-height:1.7; }
+    .result-panel p { margin:6px 0; }
     .result-panel ul { padding-left:19px; margin:6px 0; }
+    .result-panel li strong { color:#e8d9ff; font-weight:700; }
     .result-status { color:#bda4ee; font-size:12px; margin:14px 0 0; }
     .result-status.error { color:#ffb4b4; }
     .section { padding:75px 0; }
@@ -250,29 +252,288 @@
       count.textContent = `${dream.value.length.toLocaleString()} / 2,000`;
     });
 
-    function addText(parent, tag, value) {
-      if (!value) return;
+    /* ===== Response handling (never renders an object as "[object Object]") ===== */
+    // DW-LOGIC-START
+    const NAME_KEYS = ['name', 'symbol', 'title', 'emotion', 'theme', 'label', 'element', 'keyword', 'question', 'feeling', 'image'];
+    const MEANING_KEYS = ['meaning', 'interpretation', 'description', 'explanation', 'significance', 'insight', 'details', 'detail', 'text', 'content', 'summary', 'reflection'];
+    const WRAPPER_KEYS = ['interpretation', 'result', 'results', 'data', 'response', 'output', 'dream', 'content', 'analysis', 'dreaminterpretation', 'message'];
+
+    function normKey(key) {
+      return String(key).toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function prettyLabel(key) {
+      const spaced = String(key).replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_\-]+/g, ' ').trim();
+      return spaced ? spaced.charAt(0).toUpperCase() + spaced.slice(1) : '';
+    }
+
+    function isPlainObject(value) {
+      return value !== null && typeof value === 'object' && !Array.isArray(value);
+    }
+
+    function firstKeyValue(obj, wantedKeys) {
+      const entries = Object.keys(obj);
+      for (const wanted of wantedKeys) {
+        const found = entries.find(k => normKey(k) === wanted);
+        if (found !== undefined) {
+          const text = toText(obj[found]);
+          if (text) return { key: found, text };
+        }
+      }
+      return null;
+    }
+
+    // Converts any value (string, number, array, nested object) to readable plain text.
+    function toText(value, depth) {
+      depth = depth || 0;
+      if (value === null || value === undefined) return '';
+      if (typeof value === 'string') return value.trim();
+      if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+      if (depth > 6) return '';
+      if (Array.isArray(value)) {
+        return value.map(item => toText(item, depth + 1)).filter(Boolean).join('\n');
+      }
+      if (isPlainObject(value)) {
+        const preferred = firstKeyValue(value, MEANING_KEYS.map(normKey));
+        if (preferred && Object.keys(value).length === 1) return preferred.text;
+        return Object.keys(value).map(key => {
+          const text = toText(value[key], depth + 1);
+          if (!text) return '';
+          return text.indexOf('\n') === -1 ? prettyLabel(key) + ': ' + text : prettyLabel(key) + ':\n' + text;
+        }).filter(Boolean).join('\n');
+      }
+      return '';
+    }
+
+    function stripBullet(line) {
+      return line.replace(/^\s*(?:[-*•–]|\d+[.)])\s+/, '').trim();
+    }
+
+    // Converts a value into a list of { name, meaning } items.
+    function toItems(value, depth) {
+      depth = depth || 0;
+      if (value === null || value === undefined) return [];
+      if (typeof value === 'string') {
+        return value.split(/\n+/).map(stripBullet).filter(Boolean).map(line => ({ name: '', meaning: line }));
+      }
+      if (typeof value === 'number' || typeof value === 'boolean') return [{ name: '', meaning: String(value) }];
+      if (Array.isArray(value)) {
+        const out = [];
+        value.forEach(item => {
+          if (isPlainObject(item) || typeof item !== 'object') {
+            out.push.apply(out, itemFromAny(item, depth + 1));
+          } else {
+            out.push.apply(out, toItems(item, depth + 1));
+          }
+        });
+        return out;
+      }
+      if (isPlainObject(value)) return itemFromAny(value, depth);
+      return [];
+    }
+
+    function itemFromAny(item, depth) {
+      if (!isPlainObject(item)) return toItems(item, depth);
+      const nameHit = firstKeyValue(item, NAME_KEYS);
+      if (nameHit) {
+        const rest = {};
+        Object.keys(item).forEach(k => { if (k !== nameHit.key) rest[k] = item[k]; });
+        const meaningHit = firstKeyValue(rest, MEANING_KEYS.map(normKey));
+        let meaning = meaningHit ? meaningHit.text : toText(rest, depth + 1);
+        if (meaningHit && Object.keys(rest).length > 1) meaning = toText(rest, depth + 1);
+        return [{ name: nameHit.text, meaning }];
+      }
+      // A map such as { "Water": "Emotions and the unconscious", "Falling": "..." }
+      const keys = Object.keys(item);
+      const asMap = keys.map(k => ({ name: prettyLabel(k), meaning: toText(item[k], depth + 1) })).filter(x => x.meaning);
+      return asMap;
+    }
+
+    function classifyKey(key) {
+      const k = normKey(key);
+      if (/question|prompt/.test(k)) return 'questions';
+      if (/symbol/.test(k)) return 'symbols';
+      if (/emotion|feeling|mood/.test(k)) return 'emotions';
+      if (/title|heading|dreamname/.test(k)) return 'title';
+      if (/reflect|takeaway|advice|closing|finalthought/.test(k)) return 'reflection';
+      if (/overview|interpretation|summary|meaning|analysis|overall|insight/.test(k)) return 'overview';
+      return null;
+    }
+
+    function tryParseJson(text) {
+      if (typeof text !== 'string') return null;
+      let t = text.trim();
+      const fenced = t.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+      if (fenced) t = fenced[1].trim();
+      if (!/^[\[{]/.test(t)) return null;
+      try { return JSON.parse(t); } catch (e) { return null; }
+    }
+
+    // Unwraps raw Gemini responses: { candidates: [{ content: { parts: [{ text }] } }] }
+    function unwrapGemini(data) {
+      if (isPlainObject(data) && Array.isArray(data.candidates) && data.candidates[0]) {
+        const parts = data.candidates[0].content && data.candidates[0].content.parts;
+        if (Array.isArray(parts)) {
+          const text = parts.map(p => (p && typeof p.text === 'string') ? p.text : '').join('').trim();
+          if (text) return tryParseJson(text) || text;
+        }
+      }
+      return data;
+    }
+
+    // Merges nested wrapper objects (e.g. { interpretation: { title, symbols } }) into one flat object.
+    function flatten(obj, depth) {
+      depth = depth || 0;
+      const result = {};
+      const wrappers = [];
+      Object.keys(obj).forEach(key => {
+        let val = obj[key];
+        const isWrapper = WRAPPER_KEYS.indexOf(normKey(key)) !== -1;
+        if (isWrapper && typeof val === 'string') {
+          const parsed = tryParseJson(val);
+          if (parsed !== null) val = parsed;
+        }
+        if (isWrapper && depth < 4 && isPlainObject(val) && classifyKey(key) !== 'questions') {
+          wrappers.push(val);
+        } else {
+          result[key] = val;
+        }
+      });
+      wrappers.forEach(w => {
+        const inner = flatten(w, depth + 1);
+        Object.keys(inner).forEach(k => {
+          if (!(k in result)) result[k] = inner[k];
+        });
+      });
+      return result;
+    }
+
+    // Normalizes any API response into the six display sections plus any extra sections.
+    function normalizeInterpretation(raw) {
+      let data = unwrapGemini(raw);
+      if (typeof data === 'string') {
+        const parsed = tryParseJson(data);
+        if (parsed !== null) data = parsed;
+      }
+      if (Array.isArray(data)) data = { overview: toText(data) };
+      if (typeof data === 'string' || typeof data === 'number') data = { overview: String(data) };
+      if (!isPlainObject(data)) return null;
+      data = unwrapGemini(flatten(data));
+      if (!isPlainObject(data)) return { title: '', overview: toText(data), symbols: [], emotions: [], reflection: '', questions: [], extras: [] };
+
+      const out = { title: '', overview: '', symbols: [], emotions: [], reflection: '', questions: [], extras: [] };
+      Object.keys(data).forEach(key => {
+        const section = classifyKey(key);
+        const value = data[key];
+        if (section === 'title') {
+          if (!out.title) out.title = toText(value);
+        } else if (section === 'overview') {
+          if (!out.overview) out.overview = toText(value);
+          else { const t = toText(value); if (t) out.extras.push({ heading: prettyLabel(key), text: t }); }
+        } else if (section === 'reflection') {
+          if (!out.reflection) out.reflection = toText(value);
+        } else if (section === 'symbols') {
+          if (!out.symbols.length) out.symbols = toItems(value);
+        } else if (section === 'emotions') {
+          if (!out.emotions.length) out.emotions = toItems(value);
+        } else if (section === 'questions') {
+          if (!out.questions.length) out.questions = toItems(value).map(i => i.name && i.meaning ? i.name + ': ' + i.meaning : (i.name || i.meaning)).filter(Boolean);
+        } else if (['status', 'success', 'ok', 'model', 'id', 'usage', 'created', 'timestamp', 'error'].indexOf(normKey(key)) === -1) {
+          const t = toText(value);
+          if (t) out.extras.push({ heading: prettyLabel(key), text: t });
+        }
+      });
+      return out;
+    }
+
+    function hasContent(n) {
+      return !!(n && (n.title || n.overview || n.reflection || n.symbols.length || n.emotions.length || n.questions.length || n.extras.length));
+    }
+
+    // Extracts a readable error message from any error response shape.
+    function extractError(data, status) {
+      let msg = '';
+      if (typeof data === 'string') msg = data.trim();
+      else if (isPlainObject(data)) {
+        let src = data;
+        if (isPlainObject(src.error)) src = src.error;
+        const hit = firstKeyValue(src, ['message', 'error', 'detail', 'details', 'errormessage']);
+        msg = hit ? hit.text : '';
+      }
+      if (msg.length > 300 || /^\s*</.test(msg)) msg = '';
+      if (msg) return msg;
+      if (status === 429) return 'Too many requests right now. Please wait a moment and try again.';
+      if (status >= 500) return 'The dream service is having trouble right now. Please try again shortly.';
+      if (status === 400) return 'The dream could not be processed. Please check what you wrote and try again.';
+      return 'The interpretation could not be completed. Please try again.';
+    }
+    // DW-LOGIC-END
+
+    function addText(parent, tag, value, className) {
+      const text = toText(value);
+      if (!text) return null;
       const element = document.createElement(tag);
-      element.textContent = value;
+      element.textContent = text;
+      if (className) element.className = className;
       parent.appendChild(element);
+      return element;
+    }
+
+    function addParagraphs(parent, value) {
+      toText(value).split(/\n+/).map(s => s.trim()).filter(Boolean).forEach(line => addText(parent, 'p', line));
     }
 
     function addList(parent, heading, items) {
       if (!Array.isArray(items) || !items.length) return;
-      addText(parent, 'h4', heading);
       const list = document.createElement('ul');
       items.forEach(item => {
         const li = document.createElement('li');
         if (typeof item === 'string') {
           li.textContent = item;
         } else if (item && typeof item === 'object') {
-          const name = item.name || item.symbol || item.title || '';
-          const meaning = item.meaning || item.interpretation || item.description || '';
-          li.textContent = [name, meaning].filter(Boolean).join(': ');
+          const name = toText(item.name);
+          const meaning = toText(item.meaning);
+          if (name && meaning) {
+            const strong = document.createElement('strong');
+            strong.textContent = name;
+            li.appendChild(strong);
+            li.appendChild(document.createTextNode(': ' + meaning));
+          } else {
+            li.textContent = name || meaning;
+          }
         }
         if (li.textContent) list.appendChild(li);
       });
-      if (list.children.length) parent.appendChild(list);
+      if (list.children.length) {
+        addText(parent, 'h4', heading);
+        parent.appendChild(list);
+      }
+    }
+
+    function renderInterpretation(panel, normalized) {
+      panel.replaceChildren();
+      addText(panel, 'h3', normalized.title || 'Your dream interpretation');
+      if (normalized.overview) {
+        addText(panel, 'h4', 'Overall interpretation');
+        addParagraphs(panel, normalized.overview);
+      }
+      addList(panel, 'Dream symbols and their meanings', normalized.symbols);
+      addList(panel, 'Emotions', normalized.emotions);
+      if (normalized.reflection) {
+        addText(panel, 'h4', 'Reflection');
+        addParagraphs(panel, normalized.reflection);
+      }
+      addList(panel, 'Questions to reflect on', normalized.questions);
+      normalized.extras.forEach(extra => {
+        addText(panel, 'h4', extra.heading);
+        addParagraphs(panel, extra.text);
+      });
+    }
+
+    function showError(message) {
+      resultPanel.replaceChildren();
+      addText(resultPanel, 'p', message || 'Something went wrong. Please try again.', 'result-status error');
+      resultPanel.className = 'result-panel show';
     }
 
     interpretBtn.addEventListener('click', async () => {
@@ -296,37 +557,52 @@
       interpretBtn.textContent = 'Exploring your dream...';
       resultPanel.className = 'result-panel show';
       resultPanel.textContent = 'Please wait while DreamWise AI explores your dream.';
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 90000);
       try {
         const response = await fetch('https://dreamwise-api-github.darkerhorse25.workers.dev/api/interpret', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ dream: value })
+          body: JSON.stringify({ dream: value }),
+          signal: controller.signal
         });
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || data.message || 'The interpretation could not be completed. Please try again.');
+
+        let data;
+        const rawText = await response.text();
+        try {
+          data = JSON.parse(rawText);
+        } catch (parseError) {
+          data = rawText;
         }
 
-        resultPanel.replaceChildren();
-        addText(resultPanel, 'h3', data.title || 'Your dream interpretation');
-        addText(resultPanel, 'p', data.overview || data.interpretation || '');
-        addList(resultPanel, 'Dream symbols', data.symbols);
-        addList(resultPanel, 'Emotions and themes', data.emotions);
-        if (data.reflection) {
-          addText(resultPanel, 'h4', 'A moment to reflect');
-          addText(resultPanel, 'p', data.reflection);
+        if (!response.ok) {
+          throw new Error(extractError(data, response.status));
         }
-        addList(resultPanel, 'Questions to consider', data.questions);
+        if (isPlainObject(data) && data.error && !data.title && !data.interpretation && !data.overview) {
+          throw new Error(extractError(data, response.status));
+        }
+
+        const normalized = normalizeInterpretation(data);
+        if (!hasContent(normalized)) {
+          throw new Error('DreamWise received an unexpected response from the server. Please try again in a moment.');
+        }
+
+        renderInterpretation(resultPanel, normalized);
         if (!resultPanel.textContent.trim()) {
-          addText(resultPanel, 'p', 'Your interpretation is ready, but the response format was unexpected. Please try again.');
+          throw new Error('DreamWise received an unexpected response from the server. Please try again in a moment.');
         }
         resultPanel.className = 'result-panel show';
         resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } catch (error) {
-        resultPanel.replaceChildren();
-        addText(resultPanel, 'p', error.message || 'Something went wrong. Please try again.');
-        resultPanel.className = 'result-panel show';
+        let message = error && error.message ? error.message : '';
+        if (error && error.name === 'AbortError') {
+          message = 'The request took too long. Please try again.';
+        } else if (error instanceof TypeError) {
+          message = 'Could not reach DreamWise. Please check your internet connection and try again.';
+        }
+        showError(message);
       } finally {
+        window.clearTimeout(timeoutId);
         interpretBtn.disabled = false;
         interpretBtn.innerHTML = 'Explore my dream <span aria-hidden="true">✦</span>';
       }
