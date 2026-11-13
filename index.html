@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0914">
+  <meta name="description" content="Explore the meaning behind your dreams with thoughtful, AI-powered dream interpretations.">
+  <title>DreamWise AI — Find meaning in your dreams</title>
+  <style>
+    :root {
+      --bg: #0b0914; --panel: #131020; --panel2: #19152a; --line: rgba(255,255,255,.09);
+      --text: #f7f3ff; --muted: #aaa3bd; --purple: #a78bfa; --violet: #8b5cf6;
+      --pink: #e5a7e8; --gold: #e9c98b; --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; color: var(--text); background:
+      radial-gradient(ellipse at 78% 4%, rgba(111,70,180,.19), transparent 34%),
+      radial-gradient(ellipse at 12% 30%, rgba(74,55,130,.13), transparent 35%), var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, textarea { font: inherit; }
+    .wrap { width: min(1120px, calc(100% - 40px)); margin: auto; }
+    .nav { height: 78px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:11px; font-weight:750; letter-spacing:-.5px; font-size:19px; }
+    .brand-mark { width:36px; height:36px; border-radius:12px; display:grid; place-items:center; color:#171020; background:linear-gradient(140deg,#e9c98b,#b89bf8); box-shadow:0 5px 25px #9b78dc35; }
+    .brand-mark svg { width:21px; }
+    .nav-links { display:flex; align-items:center; gap:30px; color:var(--muted); font-size:13px; }
+    .nav-links a:hover { color:white; }
+    .nav-cta, .btn { border:0; cursor:pointer; color:#170f25; background:linear-gradient(110deg,#e7c58b,#c4a2f4); border-radius:999px; padding:12px 19px; font-weight:750; box-shadow:0 8px 30px #9b78dc20; transition:.2s; }
+    .nav-cta:hover,.btn:hover { transform:translateY(-2px); filter:brightness(1.06); }
+    .hero { padding:88px 0 70px; display:grid; grid-template-columns:1.03fr .97fr; gap:58px; align-items:center; }
+    .eyebrow { display:inline-flex; gap:9px; align-items:center; border:1px solid #b89bf844; background:#9b78dc12; color:#d4c0ff; padding:7px 12px; border-radius:999px; font-size:11px; letter-spacing:1.25px; text-transform:uppercase; font-weight:700; }
+    .dot { width:6px; height:6px; border-radius:50%; background:#c7a7ff; box-shadow:0 0 12px #c7a7ff; }
+    h1 { font-size:clamp(43px,6vw,69px); line-height:1.04; letter-spacing:-3.3px; margin:22px 0 20px; max-width:620px; }
+    .gradient { background:linear-gradient(100deg,#f3d59b 8%,#d7b7ff 58%,#e9b6df); color:transparent; background-clip:text; -webkit-background-clip:text; }
+    .hero-copy { color:var(--muted); max-width:490px; font-size:16px; margin:0 0 29px; }
+    .hero-actions { display:flex; align-items:center; gap:17px; flex-wrap:wrap; }
+    .text-link { color:#d9c9f5; font-size:13px; font-weight:650; }
+    .trust { display:flex; align-items:center; gap:10px; color:#8e879f; font-size:11px; margin-top:25px; }
+    .trust span { color:#d5c4f7; }
+    .demo-card { border:1px solid #c8a9f02b; border-radius:27px; padding:25px; background:linear-gradient(145deg,#1d1830e8,#100d1b); box-shadow:0 30px 90px #0008, inset 0 1px #ffffff0b; position:relative; overflow:hidden; }
+    .demo-card:before { content:""; position:absolute; width:240px; height:240px; border-radius:50%; background:#8b5cf61c; filter:blur(50px); top:-120px; right:-60px; pointer-events:none; }
+    .card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; position:relative; }
+    .card-title { font-weight:700; font-size:15px; }
+    .secure { color:#a89ebc; font-size:10px; display:flex; gap:6px; align-items:center; }
+    .field-label { display:block; font-size:12px; font-weight:650; margin:0 0 9px; color:#e4dcf3; }
+    textarea { width:100%; min-height:150px; resize:vertical; border:1px solid #ffffff16; background:#0c0a15; color:#f7f3ff; border-radius:15px; padding:15px; outline:none; font-size:13px; line-height:1.65; }
+    textarea:focus { border-color:#a78bfa9c; box-shadow:0 0 0 3px #a78bfa15; }
+    textarea::placeholder { color:#716a82; }
+    .input-foot { display:flex; justify-content:space-between; color:#777087; font-size:10px; margin:8px 2px 18px; }
+    .btn.full { width:100%; padding:14px; font-size:13px; }
+    .demo-note { color:#827b91; text-align:center; font-size:10px; margin:12px 0 0; }
+    .result-panel { display:none; margin-top:22px; padding:20px; border:1px solid #b99ce94a; border-radius:18px; background:#0d0b17; position:relative; }
+    .result-panel.show { display:block; }
+    .result-panel h3 { color:#e8d9ff; margin:0 0 10px; font-size:18px; }
+    .result-panel h4 { color:#cbb2f5; margin:18px 0 6px; font-size:12px; }
+    .result-panel p,.result-panel li { color:#c9c1d8; font-size:12px; line-height:1.7; }
+    .result-panel ul { padding-left:19px; margin:6px 0; }
+    .result-status { color:#bda4ee; font-size:12px; margin:14px 0 0; }
+    .result-status.error { color:#ffb4b4; }
+    .section { padding:75px 0; }
+    .section-head { text-align:center; max-width:620px; margin:0 auto 38px; }
+    .kicker { color:#c4a7f5; font-size:11px; text-transform:uppercase; letter-spacing:1.7px; font-weight:750; }
+    h2 { font-size:clamp(29px,4vw,42px); line-height:1.15; letter-spacing:-1.6px; margin:12px 0; }
+    .section-head p { color:var(--muted); font-size:14px; margin:0; }
+    .features { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; }
+    .feature { padding:24px; border:1px solid var(--line); border-radius:19px; background:linear-gradient(145deg,#171327,#100e19); }
+    .feature-icon { width:42px; height:42px; display:grid; place-items:center; border-radius:13px; color:#d9c6ff; background:#9b78dc1b; margin-bottom:19px; }
+    .feature-icon svg { width:20px; }
+    .feature h3 { font-size:15px; margin:0 0 8px; }
+    .feature p { color:var(--muted); font-size:12px; margin:0; }
+    .how { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; counter-reset:step; }
+    .step { border-top:1px solid #b99ce94a; padding-top:20px; }
+    .step-num { color:#b99ce9; font-size:11px; letter-spacing:1px; font-weight:800; }
+    .step h3 { font-size:16px; margin:10px 0 7px; }
+    .step p { color:var(--muted); font-size:12px; margin:0; }
+    .quote { max-width:800px; margin:auto; text-align:center; padding:38px 30px; border:1px solid #c5a5f52b; border-radius:24px; background:radial-gradient(ellipse at top,#8b5cf61a,transparent 65%),#141020; }
+    .quote p { font-size:clamp(19px,3vw,27px); letter-spacing:-.5px; line-height:1.45; margin:0 0 12px; }
+    .quote small { color:var(--muted); font-size:11px; }
+    .pricing { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; max-width:760px; margin:auto; }
+    .price-card { border:1px solid var(--line); border-radius:20px; background:#151122; padding:25px; }
+    .price-card.highlight { border-color:#b99ce95c; background:linear-gradient(145deg,#211936,#151122); }
+    .price-card h3 { margin:0; font-size:16px; }
+    .price { font-size:32px; font-weight:800; letter-spacing:-1px; margin:12px 0 3px; }
+    .price span { font-size:11px; color:var(--muted); font-weight:500; letter-spacing:0; }
+    .price-card p { color:var(--muted); font-size:12px; margin:0 0 18px; }
+    .price-card ul { list-style:none; padding:0; margin:0; color:#d5cde2; font-size:12px; }
+    .price-card li { margin:9px 0; }
+    .price-card li:before { content:"✓"; color:#c8a8ff; margin-right:9px; }
+    .soon { color:#d7c0ff; border:1px solid #b99ce94a; border-radius:999px; font-size:9px; padding:4px 8px; margin-left:7px; vertical-align:2px; }
+    .disclaimer { color:#827b91; font-size:10px; text-align:center; max-width:690px; margin:25px auto 0; }
+    footer { border-top:1px solid var(--line); padding:27px 0; color:#827b91; font-size:11px; }
+    .footer-inner { display:flex; justify-content:space-between; gap:15px; flex-wrap:wrap; }
+    .toast { position:fixed; bottom:22px; left:50%; transform:translate(-50%,20px); opacity:0; pointer-events:none; background:#eee4ff; color:#20172c; padding:12px 17px; border-radius:12px; font-size:12px; font-weight:700; box-shadow:0 10px 35px #0008; transition:.25s; z-index:5; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    @media(max-width:800px) {
+      .hero { grid-template-columns:1fr; padding:65px 0 55px; gap:38px; }
+      .hero-copy { max-width:600px; }
+      .features { grid-template-columns:1fr 1fr; }
+      .nav-links { gap:15px; }
+      .nav-links a:not(.nav-cta) { display:none; }
+    }
+    @media(max-width:540px) {
+      .wrap { width:min(100% - 28px,1120px); }
+      .nav { height:68px; }
+      .brand { font-size:17px; }
+      .nav-cta { padding:10px 14px; font-size:11px; }
+      .hero { padding:53px 0 45px; }
+      h1 { letter-spacing:-2.2px; }
+      .demo-card { padding:18px; border-radius:21px; }
+      .features,.how,.pricing { grid-template-columns:1fr; }
+      .section { padding:55px 0; }
+      .section-head { margin-bottom:27px; }
+      .footer-inner { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="wrap nav">
+    <a class="brand" href="#" aria-label="DreamWise AI home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19.5 15.5A8 8 0 0 1 8.5 4.5 8.5 8.5 0 1 0 19.5 15.5Z"/><path d="m16.5 3 .7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7.7-2.1Z"/></svg>
+      </span>
+      DreamWise <span style="color:#c3a4f4">AI</span>
+    </a>
+    <nav class="nav-links" aria-label="Main navigation">
+      <a href="#features">Features</a><a href="#how">How it works</a><a href="#plans">Plans</a>
+      <a class="nav-cta" href="#interpret">Interpret a dream</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="wrap hero">
+      <div>
+        <div class="eyebrow"><span class="dot"></span> A clearer look at your inner world</div>
+        <h1>Your dreams may be saying <span class="gradient">more than you think.</span></h1>
+        <p class="hero-copy">Explore the symbols, emotions and stories hidden in your dreams. Get a thoughtful interpretation and a fresh perspective on what they could mean to you.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#interpret">Interpret your dream <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="#how">See how it works →</a>
+        </div>
+        <div class="trust"><span>✦</span> Private dream journaling <span>·</span> Thoughtful insights <span>·</span> No predictions</div>
+      </div>
+
+      <div class="demo-card" id="interpret">
+        <div class="card-top">
+          <div class="card-title">Explore a dream</div>
+          <div class="secure"><span>✧</span> Your story matters</div>
+        </div>
+        <label class="field-label" for="dream">What did you dream about?</label>
+        <textarea id="dream" maxlength="2000" placeholder="Describe your dream in as much detail as you remember. What happened? Who or what did you see? How did you feel?"></textarea>
+        <div class="input-foot"><span>Share only what you're comfortable sharing.</span><span id="count">0 / 2,000</span></div>
+        <button class="btn full" id="interpretBtn" type="button">Explore my dream <span aria-hidden="true">✦</span></button>
+        <p class="demo-note">Your dream is sent securely for an AI-powered reflection. No predictions, just possibilities.</p>
+        <div class="result-panel" id="resultPanel" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="kicker">A more meaningful way to reflect</div>
+          <h2>Go beyond the surface of a dream.</h2>
+          <p>DreamWise brings your dream details together with thoughtful prompts to help you explore possible meanings.</p>
+        </div>
+        <div class="features">
+          <article class="feature">
+            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 14.5 9.5 21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/></svg></div>
+            <h3>Personalized interpretations</h3><p>Explore possible themes and meanings based on the details and emotions in your dream.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h14a2 2 0 0 1 2 2v14H7a4 4 0 0 1-4-4V6a2 2 0 0 1 2-2Z"/><path d="M7 20a3 3 0 0 1 0-6h14M8 8h8M8 11h6"/></svg></div>
+            <h3>Your dream journal</h3><p>Keep a personal record of dreams and revisit them as your thoughts and experiences change.</p>
+          </article>
+          <article class="feature">
+            <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+            <h3>Patterns over time</h3><p>Notice recurring symbols, settings and feelings across the dreams you choose to save.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="kicker">Simple by design</div>
+          <h2>From dream to deeper reflection.</h2>
+          <p>A calm, simple process that starts with what you remember.</p>
+        </div>
+        <div class="how">
+          <article class="step"><div class="step-num">01 / DESCRIBE</div><h3>Tell us what you remember</h3><p>Write down the people, places, events and emotions that stood out.</p></article>
+          <article class="step"><div class="step-num">02 / EXPLORE</div><h3>Receive your interpretation</h3><p>Explore possible symbolic and emotional themes, without treating them as fixed truths.</p></article>
+          <article class="step"><div class="step-num">03 / REFLECT</div><h3>Keep what resonates</h3><p>Save your dream and return to it whenever you want to reflect further.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="quote">
+          <p>“A dream interpretation should open a door to reflection, not tell you what your future must be.”</p>
+          <small>The DreamWise approach</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="plans">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="kicker">Plans that can grow with you</div>
+          <h2>Start with a little curiosity.</h2>
+          <p>We are shaping a free experience first. Membership options will be introduced after the core product is ready.</p>
+        </div>
+        <div class="pricing">
+          <article class="price-card">
+            <h3>Free</h3><div class="price">$0 <span>/ to start</span></div><p>For exploring your dreams and getting started.</p>
+            <ul><li>Dream interpretation allowance</li><li>Personal dream journal</li><li>Access to core dream insights</li></ul>
+          </article>
+          <article class="price-card highlight">
+            <h3>DreamWise Plus <span class="soon">PLANNED</span></h3><div class="price">Coming soon</div><p>For people who want a deeper ongoing dream practice.</p>
+            <ul><li>More interpretation credits</li><li>Expanded dream history</li><li>Recurring-symbol insights</li></ul>
+          </article>
+        </div>
+        <p class="disclaimer">Dream interpretations are for personal reflection and entertainment. They are not medical or psychological diagnoses, and they cannot predict future events.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <div class="brand" style="font-size:14px"><span class="brand-mark" style="width:27px;height:27px;border-radius:9px">✦</span>DreamWise <span style="color:#c3a4f4">AI</span></div>
+      <div>© <span id="year"></span> DreamWise AI. Made for curious minds.</div>
+      <div>Interpret with curiosity. Reflect with care.</div>
+    </div>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const dream = document.getElementById('dream');
+    const count = document.getElementById('count');
+    const toast = document.getElementById('toast');
+    const interpretBtn = document.getElementById('interpretBtn');
+    const resultPanel = document.getElementById('resultPanel');
+
+    dream.addEventListener('input', () => {
+      count.textContent = `${dream.value.length.toLocaleString()} / 2,000`;
+    });
+
+    function addText(parent, tag, value) {
+      if (!value) return;
+      const element = document.createElement(tag);
+      element.textContent = value;
+      parent.appendChild(element);
+    }
+
+    function addList(parent, heading, items) {
+      if (!Array.isArray(items) || !items.length) return;
+      addText(parent, 'h4', heading);
+      const list = document.createElement('ul');
+      items.forEach(item => {
+        const li = document.createElement('li');
+        if (typeof item === 'string') {
+          li.textContent = item;
+        } else if (item && typeof item === 'object') {
+          const name = item.name || item.symbol || item.title || '';
+          const meaning = item.meaning || item.interpretation || item.description || '';
+          li.textContent = [name, meaning].filter(Boolean).join(': ');
+        }
+        if (li.textContent) list.appendChild(li);
+      });
+      if (list.children.length) parent.appendChild(list);
+    }
+
+    interpretBtn.addEventListener('click', async () => {
+      const value = dream.value.trim();
+      if (!value) {
+        toast.textContent = 'Write a few details about your dream first.';
+        toast.classList.add('show');
+        window.clearTimeout(window.__dreamwiseToast);
+        window.__dreamwiseToast = window.setTimeout(() => toast.classList.remove('show'), 3000);
+        return;
+      }
+      if (value.length < 12) {
+        toast.textContent = 'Add a little more detail so we can explore it properly.';
+        toast.classList.add('show');
+        window.clearTimeout(window.__dreamwiseToast);
+        window.__dreamwiseToast = window.setTimeout(() => toast.classList.remove('show'), 3000);
+        return;
+      }
+
+      interpretBtn.disabled = true;
+      interpretBtn.textContent = 'Exploring your dream...';
+      resultPanel.className = 'result-panel show';
+      resultPanel.textContent = 'Please wait while DreamWise AI explores your dream.';
+      try {
+        const response = await fetch('https://dreamwise-api-github.darkerhorse25.workers.dev/api/interpret', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dream: value })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || data.message || 'The interpretation could not be completed. Please try again.');
+        }
+
+        resultPanel.replaceChildren();
+        addText(resultPanel, 'h3', data.title || 'Your dream interpretation');
+        addText(resultPanel, 'p', data.overview || data.interpretation || '');
+        addList(resultPanel, 'Dream symbols', data.symbols);
+        addList(resultPanel, 'Emotions and themes', data.emotions);
+        if (data.reflection) {
+          addText(resultPanel, 'h4', 'A moment to reflect');
+          addText(resultPanel, 'p', data.reflection);
+        }
+        addList(resultPanel, 'Questions to consider', data.questions);
+        if (!resultPanel.textContent.trim()) {
+          addText(resultPanel, 'p', 'Your interpretation is ready, but the response format was unexpected. Please try again.');
+        }
+        resultPanel.className = 'result-panel show';
+        resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (error) {
+        resultPanel.replaceChildren();
+        addText(resultPanel, 'p', error.message || 'Something went wrong. Please try again.');
+        resultPanel.className = 'result-panel show';
+      } finally {
+        interpretBtn.disabled = false;
+        interpretBtn.innerHTML = 'Explore my dream <span aria-hidden="true">✦</span>';
+      }
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
